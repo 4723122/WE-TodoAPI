@@ -3,7 +3,7 @@ from pydantic import BaseModel, validator
 from typing import List, Optional
 from datetime import datetime
 
-app = FastAPI(title="", description="TODOリスト管理API", version="1.0.0")
+app = FastAPI(title="TODO API", description="TODOリスト管理API", version="1.0.0")
 
 class TodoItem(BaseModel):
     id: int
@@ -27,8 +27,17 @@ def read_root():
 
 #すべてのTODOアイテムを取得
 @app.get("/todos", response_model=List[TodoItem])
-def get_all_todos():
-    return todos
+def get_all_todos(query: Optional[str] = None):
+    if query:
+        resuls: List[TodoItem] = []
+        for todo in todos:
+            if query.lower() in todo.title.lower():
+                resuls.append(todo)
+            if query.lower() in todo.description.lower():
+                resuls.append(todo)
+        return resuls
+    else:
+        return todos
 
 #特定のTODOアイテムを取得
 @app.get("/todos/{todo_id}", response_model=TodoItem)
