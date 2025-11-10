@@ -11,6 +11,16 @@ class TodoItem(BaseModel):
     description: Optional[str] = None #やることの詳細説明
     completed: bool = False #完了状態
 
+#POSTリクエスト用class 2025/11/10追加
+class TodoItemCreateSchema(BaseModel):
+    title: str
+    description: Optional[str] = None
+
+#PUTリクエスト用class 2025/11/10追加############################
+class TodoItemPUT(BaseModel):
+    title: str #やることのタイトル
+    description: Optional[str] = None #やることの詳細説明
+    completed: bool = False #完了状態
 
 todos = [
     TodoItem(id=1, title="牛乳とパンを買う", description="牛乳は低温殺菌じゃないとだめ", completed=False),
@@ -46,3 +56,38 @@ def get_todo(todo_id: int):
         if todo.id == todo_id:
             return todo
     raise HTTPException(status_code=404, detail="TODOアイテムが見つからない")
+
+
+#新しいTodoをPOST　2025/11/10追加
+@app.post("/todos", response_model=TodoItem)
+def create_todo(req : TodoItemCreateSchema):
+    #新しいIDを生成
+    new_id = max([todo.id for todo in todos], default=0) + 1
+    #新しいTODOアイテムを作成
+    new_todo = TodoItem(id=new_id, title=req.title, description=req.description, completed=False)
+    #リストに追加
+    todos.append(new_todo)
+
+    return new_todo
+
+#TODOアイテムを削除 2025/11/10追加
+@app.delete("/todos/{todo_id}")
+def delete_todo(todo_id: int):
+    for i,todo in enumerate(todos):
+        if todo.id == todo_id:
+            deleted_todo = todos.pop(i)
+            return {"message": f"TODO'{deleted_todo.description}'を削除しました"}
+        raise HTTPException(status_code=404, detail=f"ID{todo_id}が見つかりません")
+
+
+#課題：PUT実装 2025/11/10追加##################
+@app.put("/todos/{todo_id}")
+def update_todo(todo_id: int, req: TodoItemPUT):#req:~ でJSONを変換して受け取る
+    for i, todo in enumerate(todos):
+        if todo.id == todo_id:
+            todo.title = req.title
+            todo.description = req.description
+            todo.completed = req.completed
+            return todo
+    raise HTTPException(status_code=404, detail=f"ID{todo_id}が見つかりません")
+
