@@ -61,7 +61,7 @@ async def delete_todo(todo_id: int):
 #課題：PUT実装 2025/11/10追加##################
 @app.put("/todos/{todo_id}")
 async def update_todo(todo_id: int, req: TodoItemUpdate_Pydantic):#req:~ でJSONを変換して受け取る
-    todo = await TodoItemUpdate_Pydantic.get(id=todo_id)
+    todo = await TodoItem.get(id=todo_id)
     if todo:
         todo.title = req.title
         todo.description = req.description
